@@ -40,6 +40,14 @@ contract TestMultiMessageSender is Test {
     MockBridgeSenderAdapter adapter1;
     MockBridgeSenderAdapter adapter2;
 
+    event MultiMessageMsgSent(
+        uint32 nonce,
+        uint64 dstChainId,
+        address target,
+        bytes callData,
+        address[] senderAdapters
+    );
+
     function setUp() public {
         mms = new MultiMessageSender(address(this));
         adapter1 = new MockBridgeSenderAdapter();
@@ -167,7 +175,12 @@ contract TestMultiMessageSender is Test {
         uint256 initialBalance = address(this).balance;
         uint256 totalFee = mms.estimateTotalMessageFee(dstChainId, mmr, target, callData);
 
-        mms.remoteCall{value: totalFee}(dstChainId, mmr, target, callData);
+        // check for message dispatched event
+        // vm.expectEmit(true, true, true, true);
+        // emit MultiMessageMsgSent(0, dstChainId, target, callData, adapters);
+        mms.remoteCall{value: totalFee}(dstChainId-1, mmr, target, callData);
+
+        // check if gas was consumed
         assertEq(initialBalance - totalFee, address(this).balance);
     }
 }
